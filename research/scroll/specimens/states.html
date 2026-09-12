@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scroll Techniques — State Sheet</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   STATE SHEET — the reference the agent should read.
+
+   index.html shows each technique live, which means you must scroll to it and
+   can only ever see one moment of it. This file shows START / MID / END of
+   every technique at once, statically, so the whole behaviour is legible
+   without scrolling and without guessing.
+
+   Each row: the three states, the exact CSS, and the range that produces it.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+*{box-sizing:border-box}
+body{margin:0;background:#0b0b0e;color:#e9e9ee;
+     font:14px/1.55 ui-sans-serif,system-ui,sans-serif}
+header{padding:40px 5vw 24px;border-bottom:1px solid #23232b}
+h1{font:600 26px/1.1 ui-sans-serif;margin:0 0 8px;letter-spacing:-.02em}
+header p{color:#8b8b98;max-width:70ch;margin:0}
+code{font:12px ui-monospace,monospace;background:#17171d;padding:2px 5px;border-radius:4px;color:#c8c8d6}
+
+.row{display:grid;grid-template-columns:190px 1fr 300px;gap:22px;
+     padding:26px 5vw;border-bottom:1px solid #1c1c24;align-items:start}
+.meta h2{font:600 15px/1.2 ui-sans-serif;margin:0 0 6px}
+.meta .tag{display:inline-block;font:600 10px/1 ui-monospace,monospace;letter-spacing:.1em;
+  text-transform:uppercase;background:#22222b;color:#9a9aa8;padding:4px 6px;border-radius:3px;margin-bottom:8px}
+.meta p{color:#83838f;font-size:12.5px;margin:0}
+
+.states{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.state{background:#111117;border:1px solid #23232c;border-radius:10px;overflow:hidden}
+.state .lbl{font:600 10px/1 ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;
+  color:#7c7c8a;padding:8px 10px;border-bottom:1px solid #1e1e26;background:#0e0e13}
+.stage{height:132px;display:grid;place-items:center;position:relative;overflow:hidden;padding:12px}
+/* prose in a stage must flow as one paragraph: place-items:center makes every
+   child its own grid row, which split sentences at their <em>. */
+.stage.prose{display:block;align-content:center;height:auto;min-height:132px}
+
+pre{margin:0;font:11.5px/1.5 ui-monospace,monospace;color:#b9b9c8;background:#111117;
+  border:1px solid #23232c;border-radius:10px;padding:12px;
+  white-space:pre-wrap;overflow-wrap:anywhere;padding-left:24px;text-indent:-12px}
+pre .k{color:#7fb2ff} pre .v{color:#f0a35e} pre .c{color:#5d5d6b}
+
+/* ── shared demo objects ───────────────────────────────────────────────── */
+.box{width:74px;height:74px;border-radius:8px;background:#ff5c39}
+.card{width:88%;height:66px;background:#191921;border:1px solid #2a2a35;border-radius:9px}
+.bar{height:8px;background:#ff5c39;border-radius:99px;transform-origin:0 50%;width:100%}
+.rail{width:88%;height:8px;background:#23232c;border-radius:99px;overflow:hidden}
+.txt{font:600 15px/1.3 ui-sans-serif;text-align:center}
+.pan{position:absolute;inset:-24% 0;display:grid;place-items:center;font:800 42px ui-sans-serif;color:#25355e}
+.pan.f{font-size:15px;color:#e9e9ee;font-weight:700}
+.glasspane{width:82%;height:62px;border-radius:10px;border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.18);backdrop-filter:blur(6px)}
+.grad{position:absolute;inset:0;background:linear-gradient(135deg,#7b2ff7,#f107a3 55%,#ff6a3d)}
+
+/* ── rows 11-14 ───────────────────────────────────────────────────────── */
+.stage img{width:100%;height:100%;object-fit:cover;display:block}
+.sty{display:flex;flex-direction:column;gap:7px;width:78%}
+.sty b{display:block;height:14px;border-radius:3px;background:#2a2a34}
+.mq{width:100%;height:100%;display:grid;place-items:center;overflow:hidden}
+.mq span{white-space:nowrap;font:700 15px/1 ui-monospace,monospace;color:#ff5c39;letter-spacing:.06em}
+svg{overflow:visible}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Scroll techniques — state sheet</h1>
+  <p>Start, middle and end of fourteen of the sixteen techniques, side by side and static. Use this
+  to choose a technique and to see what its range values actually do. <code>index.html</code> next
+  door launches each one live, but a live technique only ever shows one moment of itself.</p>
+  <p style="margin-top:8px"><code>smooth-scroll</code> and <code>view-transition</code> are the two
+  that are not here, and the last row says why.</p>
+</header>
+
+<!-- 01 REVEAL ─────────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · view()</span>
+    <h2>Scroll reveal</h2>
+    <p>Finish early. The default <code>cover</code> range is still animating at mid-screen, which reads as sluggish.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">entry 10% — start</div><div class="stage"><div class="card" style="opacity:0;transform:translateY(28px)"></div></div></div>
+    <div class="state"><div class="lbl">~cover 24% — mid</div><div class="stage"><div class="card" style="opacity:.5;transform:translateY(14px)"></div></div></div>
+    <div class="state"><div class="lbl">cover 38% — end</div><div class="stage"><div class="card"></div></div></div>
+  </div>
+  <pre><span class="k">animation</span>: reveal auto linear both;
+<span class="k">animation-timeline</span>: <span class="v">view()</span>;
+<span class="k">animation-range</span>: <span class="v">entry 10% cover 38%</span>;
+
+<span class="c">/* opacity 0→1, translateY 28px→0 */</span></pre>
+</div>
+
+<!-- 02 PROGRESS ───────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · scroll()</span>
+    <h2>Scroll progress</h2>
+    <p>Scale, never width. Survives <code>prefers-reduced-motion</code> — it reports position, which WCAG exempts.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">0%</div><div class="stage"><div class="rail"><div class="bar" style="transform:scaleX(0)"></div></div></div></div>
+    <div class="state"><div class="lbl">50%</div><div class="stage"><div class="rail"><div class="bar" style="transform:scaleX(.5)"></div></div></div></div>
+    <div class="state"><div class="lbl">100%</div><div class="stage"><div class="rail"><div class="bar" style="transform:scaleX(1)"></div></div></div></div>
+  </div>
+  <pre><span class="k">html</span>{ <span class="k">scroll-timeline</span>: <span class="v">--page block</span> }
+
+#progress{
+  <span class="k">transform-origin</span>: 0 50%;
+  <span class="k">animation</span>: grow auto linear;
+  <span class="k">animation-timeline</span>: <span class="v">--page</span>;
+}
+<span class="c">/* name it on html — anonymous scroll()
+   can resolve to an inactive timeline
+   on a position:fixed element */</span></pre>
+</div>
+
+<!-- 03 PARALLAX ───────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · view()</span>
+    <h2>Parallax</h2>
+    <p><strong>WCAG 2.3.3 names this by name.</strong> Overscan the layers or their edges slide into view.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">enter</div><div class="stage" style="background:linear-gradient(#1b2a4a,#0f1626)"><div class="pan" style="transform:translateY(-8%)">DEPTH</div><div class="pan f" style="transform:translateY(-26%)">foreground</div></div></div>
+    <div class="state"><div class="lbl">centre</div><div class="stage" style="background:linear-gradient(#1b2a4a,#0f1626)"><div class="pan">DEPTH</div><div class="pan f">foreground</div></div></div>
+    <div class="state"><div class="lbl">exit</div><div class="stage" style="background:linear-gradient(#1b2a4a,#0f1626)"><div class="pan" style="transform:translateY(8%)">DEPTH</div><div class="pan f" style="transform:translateY(26%)">foreground</div></div></div>
+  </div>
+  <pre><span class="c">/* both layers, ONE timeline */</span>
+.layer{ <span class="k">position</span>:absolute; <span class="k">inset</span>:<span class="v">-30% 0</span>;
+        <span class="k">animation-timeline</span>: <span class="v">view()</span> }
+.back { translateY <span class="v">-8% → 8%</span> }
+.front{ translateY <span class="v">-26% → 26%</span> }
+
+@media (prefers-reduced-motion:reduce){
+  .layer{ <span class="k">animation</span>:none }
+}</pre>
+</div>
+
+<!-- 04 PINNED ─────────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · sticky + view()</span>
+    <h2>Pinned scene</h2>
+    <p>Use the <code>contain</code> range — <code>cover</code> starts while the section is still sliding in, so the first third plays off-screen.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">contain 0%</div><div class="stage"><div class="box" style="border-radius:50%;transform:scale(.55)"></div></div></div>
+    <div class="state"><div class="lbl">contain 50%</div><div class="stage"><div class="box" style="border-radius:26%;transform:rotate(100deg) scale(.9);background:#9a7cb8"></div></div></div>
+    <div class="state"><div class="lbl">contain 100%</div><div class="stage"><div class="box" style="border-radius:6px;transform:rotate(200deg) scale(1.25);background:#39c2ff"></div></div></div>
+  </div>
+  <pre>.wrap { <span class="k">height</span>:<span class="v">260vh</span>;
+         <span class="k">view-timeline-name</span>:<span class="v">--pin</span> }
+.stage{ <span class="k">position</span>:sticky; <span class="k">top</span>:0;
+        <span class="k">height</span>:100vh }
+.box  { <span class="k">animation-timeline</span>:<span class="v">--pin</span>;
+        <span class="k">animation-range</span>:<span class="v">contain 0% contain 100%</span> }
+
+<span class="c">/* budget: 260vh of scroll must earn
+   its keep — see audit dead-viewport
+   check */</span></pre>
+</div>
+
+<!-- 05 STACKING ───────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · exit-crossing</span>
+    <h2>Stacking cards</h2>
+    <p>Scale <em>and</em> darken. Scale alone reads as a rendering glitch; the darkening supplies the depth.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">stacked</div><div class="stage" style="padding:0"><div style="width:78%;height:44px;background:#ff5c39;border-radius:9px;margin-top:-16px"></div></div></div>
+    <div class="state"><div class="lbl">being covered</div><div class="stage" style="padding:0;display:block"><div style="width:70%;height:42px;background:#ff5c39;border-radius:9px;margin:16px auto 0;transform:scale(.93);filter:brightness(.72)"></div><div style="width:78%;height:44px;background:#39c2ff;border-radius:9px;margin:6px auto 0"></div></div></div>
+    <div class="state"><div class="lbl">exit-crossing 100%</div><div class="stage" style="padding:0;display:block"><div style="width:70%;height:40px;background:#ff5c39;border-radius:9px;margin:14px auto 0;transform:scale(.86);filter:brightness(.55)"></div><div style="width:78%;height:44px;background:#39c2ff;border-radius:9px;margin:4px auto 0"></div></div></div>
+  </div>
+  <pre>.stack li{
+  <span class="k">position</span>:sticky; <span class="k">top</span>:<span class="v">14vh</span>;   <span class="c">/* same for all */</span>
+  <span class="k">animation-timeline</span>:<span class="v">view()</span>;
+  <span class="k">animation-range</span>:<span class="v">exit-crossing 0% 100%</span>;
+}
+@keyframes shrink{ to{
+  <span class="k">transform</span>:scale(.86);
+  <span class="k">filter</span>:brightness(.55) } }
+
+<span class="c">/* filter repaints — swap for an
+   overlay opacity past ~6 cards */</span></pre>
+</div>
+
+<!-- 06 TEXT REVEAL ────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · per-word</span>
+    <h2>Text reveal</h2>
+    <p>Start from <code>opacity:.12</code>, not <code>0</code> — the reader sees the line's shape resolve, and it degrades safely.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">entry 20%</div><div class="stage"><div class="txt" style="opacity:.12;filter:blur(4px)">type carries<br>the voice</div></div></div>
+    <div class="state"><div class="lbl">mid</div><div class="stage"><div class="txt" style="opacity:.55;filter:blur(1.6px)">type carries<br>the voice</div></div></div>
+    <div class="state"><div class="lbl">cover 45%</div><div class="stage"><div class="txt">type carries<br>the voice</div></div></div>
+  </div>
+  <pre>span{ <span class="k">display</span>:inline-block;
+      <span class="k">animation-timeline</span>:<span class="v">view()</span>;
+      <span class="k">animation-range</span>:<span class="v">entry 20% cover 45%</span> }
+
+<span class="c">/* aria-label the sentence on the
+   parent, aria-hidden the spans —
+   splitting destroys SR phrasing.
+   blur() repaints: headlines only */</span></pre>
+</div>
+
+<!-- 07 SVG DRAW ───────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · dashoffset</span>
+    <h2>SVG path draw</h2>
+    <p><code>pathLength="1"</code> normalises any path, so no <code>getTotalLength()</code> in JS.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">0%</div><div class="stage"><svg width="150" height="60" viewBox="0 0 150 60"><path d="M4 48 C40 4, 70 56, 146 10" pathLength="1" fill="none" stroke="#ff5c39" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="1"/></svg></div></div>
+    <div class="state"><div class="lbl">55%</div><div class="stage"><svg width="150" height="60" viewBox="0 0 150 60"><path d="M4 48 C40 4, 70 56, 146 10" pathLength="1" fill="none" stroke="#ff5c39" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset=".45"/></svg></div></div>
+    <div class="state"><div class="lbl">100%</div><div class="stage"><svg width="150" height="60" viewBox="0 0 150 60"><path d="M4 48 C40 4, 70 56, 146 10" pathLength="1" fill="none" stroke="#ff5c39" stroke-width="3" stroke-linecap="round" stroke-dasharray="1" stroke-dashoffset="0"/></svg></div></div>
+  </div>
+  <pre>path{
+  <span class="k">pathLength</span>:<span class="v">1</span>;
+  <span class="k">stroke-dasharray</span>:<span class="v">1</span>;
+  <span class="k">stroke-dashoffset</span>:<span class="v">1</span>;
+  <span class="k">animation-timeline</span>:<span class="v">view()</span>;
+}
+@keyframes draw{ to{ <span class="k">stroke-dashoffset</span>:0 } }
+
+@supports not (animation-timeline:scroll()){
+  path{ <span class="k">stroke-dashoffset</span>:0 }  <span class="c">/* or invisible */</span>
+}</pre>
+</div>
+
+<!-- 08 THEME SHIFT ────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · @property</span>
+    <h2>Theme shift</h2>
+    <p>Check <em>every</em> stop and the midpoints between them. This is the one effect that silently breaks contrast.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">cover 0%</div><div class="stage" style="background:#2a1030"><span style="color:#f4e9ff;font-weight:600">readable?</span></div></div>
+    <div class="state"><div class="lbl">cover 50%</div><div class="stage" style="background:#0f2c33"><span style="color:#f4e9ff;font-weight:600">readable?</span></div></div>
+    <div class="state"><div class="lbl">cover 100%</div><div class="stage" style="background:#31240d"><span style="color:#f4e9ff;font-weight:600">readable?</span></div></div>
+  </div>
+  <pre><span class="k">@property</span> --bg{ <span class="k">syntax</span>:<span class="v">'&lt;color&gt;'</span>;
+  <span class="k">inherits</span>:true; <span class="k">initial-value</span>:#0c0c0f }
+
+<span class="c">/* animate --bg AND --fg together so
+   the pair stays locked; interpolate
+   in oklch, not rgb */</span></pre>
+</div>
+
+<!-- 09 HORIZONTAL + SNAP ──────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">native · overflow-x</span>
+    <h2>Horizontal + snap</h2>
+    <p>Native beats converted. Let the next panel peek — a rail with no peek is invisible.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">panel 1 snapped</div><div class="stage" style="padding:0 0 0 10px;justify-items:start"><div style="display:flex;gap:8px"><div style="width:96px;height:60px;background:#ff5c39;border-radius:8px;flex:0 0 auto"></div><div style="width:96px;height:60px;background:#39c2ff;border-radius:8px;flex:0 0 auto"></div></div></div></div>
+    <div class="state"><div class="lbl">between (proximity)</div><div class="stage" style="padding:0;justify-items:start"><div style="display:flex;gap:8px;margin-left:-38px"><div style="width:96px;height:60px;background:#ff5c39;border-radius:8px;flex:0 0 auto"></div><div style="width:96px;height:60px;background:#39c2ff;border-radius:8px;flex:0 0 auto"></div><div style="width:96px;height:60px;background:#ffd23f;border-radius:8px;flex:0 0 auto"></div></div></div></div>
+    <div class="state"><div class="lbl">panel 2 snapped</div><div class="stage" style="padding:0;justify-items:start"><div style="display:flex;gap:8px;margin-left:-86px"><div style="width:96px;height:60px;background:#ff5c39;border-radius:8px;flex:0 0 auto"></div><div style="width:96px;height:60px;background:#39c2ff;border-radius:8px;flex:0 0 auto"></div><div style="width:96px;height:60px;background:#ffd23f;border-radius:8px;flex:0 0 auto"></div></div></div></div>
+  </div>
+  <pre>.rail{ <span class="k">overflow-x</span>:auto;
+       <span class="k">scroll-snap-type</span>:<span class="v">x proximity</span>;
+       <span class="k">scroll-timeline</span>:<span class="v">--rail inline</span> }
+.rail > *{ <span class="k">flex</span>:<span class="v">0 0 62%</span>;   <span class="c">/* peek */</span>
+           <span class="k">scroll-snap-align</span>:center }
+
+<span class="c">/* mandatory strands users when an
+   item is taller than the viewport.
+   Lenis does NOT support scroll-snap */</span></pre>
+</div>
+
+<!-- 10 GLASS + BACKDROP ───────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">budget: 1 per view</span>
+    <h2>Glass over motion</h2>
+    <p>The pairing worth knowing — and the FPS trap. <code>backdrop-filter</code> re-blurs every scroll frame.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">backdrop at 0%</div><div class="stage" style="padding:0"><div class="grad"></div><div class="glasspane" style="position:relative"></div></div></div>
+    <div class="state"><div class="lbl">backdrop moved</div><div class="stage" style="padding:0"><div class="grad" style="transform:translateY(-18%) rotate(8deg)"></div><div class="glasspane" style="position:relative"></div></div></div>
+    <div class="state"><div class="lbl">on flat ground ✗</div><div class="stage" style="padding:0;background:#141419"><div class="glasspane" style="position:relative"></div></div></div>
+  </div>
+  <pre><span class="k">backdrop-filter</span>: <span class="v">blur(16px) saturate(140%)</span>;
+<span class="k">background</span>: rgba(255,255,255,.12);
+<span class="k">border</span>: 1px solid rgba(255,255,255,.3);
+
+<span class="c">/* saturate() stops it going milky.
+   NEVER on a repeating list item.
+   Third panel: no backdrop = no glass,
+   which is why glassmorphism bans a
+   flat solid ground. */</span></pre>
+</div>
+
+
+<!-- 11 SCROLLYTELLING ─────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">stepped · sticky + view()</span>
+    <h2>Scrollytelling</h2>
+    <p>Not pinned-scene with more text. The stage is pinned <em>once</em>; each step owns its own
+    <code>view()</code> timeline and swaps what the stage shows.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">step 1</div><div class="stage"><div class="sty"><b style="background:#ff5c39"></b><b></b><b></b></div></div></div>
+    <div class="state"><div class="lbl">step 2</div><div class="stage"><div class="sty"><b></b><b style="background:#ff5c39"></b><b></b></div></div></div>
+    <div class="state"><div class="lbl">step 3</div><div class="stage"><div class="sty"><b></b><b></b><b style="background:#ff5c39"></b></div></div></div>
+  </div>
+  <pre>.stage{ <span class="k">position</span>:<span class="v">sticky</span>; <span class="k">top</span>:<span class="v">0</span> }
+
+.step{ <span class="k">view-timeline-name</span>:<span class="v">--s</span> }
+.layer{
+  <span class="k">animation-timeline</span>:<span class="v">--s</span>;
+  <span class="k">animation-range</span>:<span class="v">contain</span>;
+}
+
+<span class="c">/* One pin, N timelines. The stage
+   never re-pins between steps, which
+   is the whole difference from
+   pinned-scene. */</span></pre>
+</div>
+
+<!-- 12 MARQUEE ────────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · translateX</span>
+    <h2>Scroll marquee</h2>
+    <p>Position, not time. A time-driven marquee keeps moving when the page is still; this one is
+    dead until you scroll, so it never competes for attention.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">0%</div><div class="stage" style="padding:0"><div class="mq"><span style="transform:translateX(0)">SHIP&nbsp;·&nbsp;MEASURE&nbsp;·&nbsp;SHIP&nbsp;·&nbsp;</span></div></div></div>
+    <div class="state"><div class="lbl">50%</div><div class="stage" style="padding:0"><div class="mq"><span style="transform:translateX(-25%)">SHIP&nbsp;·&nbsp;MEASURE&nbsp;·&nbsp;SHIP&nbsp;·&nbsp;</span></div></div></div>
+    <div class="state"><div class="lbl">100%</div><div class="stage" style="padding:0"><div class="mq"><span style="transform:translateX(-50%)">SHIP&nbsp;·&nbsp;MEASURE&nbsp;·&nbsp;SHIP&nbsp;·&nbsp;</span></div></div></div>
+  </div>
+  <pre>.track{
+  <span class="k">animation</span>:<span class="v">slide linear</span>;
+  <span class="k">animation-timeline</span>:<span class="v">scroll(root block)</span>;
+}
+@keyframes slide{
+  to{ <span class="k">transform</span>:<span class="v">translateX(-50%)</span> }
+}
+
+<span class="c">/* -50% and a doubled track, so the
+   loop point is seamless. aria-hidden
+   on the duplicate half. */</span></pre>
+</div>
+
+<!-- 13 VIDEO SCRUB ────────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · steps(1)</span>
+    <h2>Video scrub</h2>
+    <p>Real frames, not a mock — 48 of them, 214&nbsp;KB, in <code>../assets/scrub/</code>. A frame
+    sequence has no <code>currentTime</code>, so this needs <b>no JavaScript at all</b>.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">frame 0</div><div class="stage" style="padding:0"><img src="../assets/scrub/000.webp" alt="scrub sequence, first frame"></div></div>
+    <div class="state"><div class="lbl">frame 23</div><div class="stage" style="padding:0"><img src="../assets/scrub/023.webp" alt="scrub sequence, middle frame"></div></div>
+    <div class="state"><div class="lbl">frame 47</div><div class="stage" style="padding:0"><img src="../assets/scrub/047.webp" alt="scrub sequence, last frame"></div></div>
+  </div>
+  <pre>.wrap{ <span class="k">--n</span>:<span class="v">48</span>; <span class="k">height</span>:<span class="v">340vh</span>;
+  <span class="k">view-timeline-name</span>:<span class="v">--scrub</span> }
+
+.fr{ <span class="k">animation</span>:<span class="v">show auto steps(1,end) both</span>;
+  <span class="k">animation-timeline</span>:<span class="v">--scrub</span>;
+  <span class="k">animation-range</span>:<span class="v">contain calc(var(--i) * var(--slice))</span>
+                   <span class="v">contain calc((var(--i) + .001) * var(--slice))</span> }
+
+<span class="c">/* The TALL wrapper owns the timeline.
+   Putting it on the frames — which
+   never move — pins frame 0 forever. */</span></pre>
+</div>
+
+<!-- 14 SCROLL WORLD ───────────────────────────────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">scrubbed · generated chain</span>
+    <h2>Scroll world</h2>
+    <p>Same mechanism, different asset economics: 40 frames in <code>../assets/world/</code>. The
+    production form has a real per-build cash cost — see <code>../authoring-tools.md</code>.</p></div>
+  <div class="states">
+    <div class="state"><div class="lbl">frame 0</div><div class="stage" style="padding:0"><img src="../assets/world/000.webp" alt="world sequence, first frame"></div></div>
+    <div class="state"><div class="lbl">frame 20</div><div class="stage" style="padding:0"><img src="../assets/world/020.webp" alt="world sequence, middle frame"></div></div>
+    <div class="state"><div class="lbl">frame 39</div><div class="stage" style="padding:0"><img src="../assets/world/039.webp" alt="world sequence, last frame"></div></div>
+  </div>
+  <pre><span class="c">/* Identical CSS to video-scrub.
+   The difference is upstream: who
+   renders the chain, and what it
+   costs to re-render when the
+   product changes. */</span>
+
+<span class="c">/* Threlte / r3f is the runtime
+   alternative — no per-build cost,
+   a WebGL bundle and a GPU budget
+   instead. */</span></pre>
+</div>
+
+<!-- ── the two with no scroll-position states ───────────────────────────── -->
+<div class="row">
+  <div class="meta"><span class="tag">not shown here</span>
+    <h2>The other two</h2>
+    <p>Sixteen techniques exist. Fourteen are on this sheet; these two have nothing to freeze.</p></div>
+  <div class="states" style="grid-template-columns:1fr 1fr">
+    <div class="state"><div class="lbl">smooth-scroll ⚠</div><div class="stage prose" style="text-align:center;color:#83838f;font-size:12.5px;padding:16px">Changes the <em>feel</em> of scrolling, not what any element looks like at a scroll position. Start, mid and end are identical images.</div></div>
+    <div class="state"><div class="lbl">view-transition</div><div class="stage prose" style="text-align:center;color:#83838f;font-size:12.5px;padding:16px">Animates on <em>navigation</em>, not on scroll. Same reason it carries no ✗ against any pack in the matrix.</div></div>
+  </div>
+  <pre><span class="c">/* Both are live and scrollable in
+   ../sections/ — smooth-scroll.html
+   and view-transition.html — where
+   the behaviour is the point and a
+   still frame cannot carry it. */</span></pre>
+</div>
+
+<footer style="padding:30px 5vw 60px;color:#6f6f7c;font-size:12.5px">
+  Fourteen of the sixteen techniques, frozen. Each one live and scrollable, self-auditing against
+  <code>engine.md</code> §6: <code>../sections/&lt;name&gt;.html</code> — launched from
+  <code>index.html</code>. Compatibility with the twelve style packs:
+  <code>../compatibility.md</code>. Per-technique detail: <code>../techniques/</code>.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>audit.mjs self-test — deliberately broken</title>
+<!--
+  ══════════════════════════════════════════════════════════════════════════
+  NEGATIVE CONTROL for engine/audit.mjs.
+
+  An audit that never fails proves nothing. This page breaks a known, fixed
+  set of rules, so a run against it must report exactly those and nothing
+  else. If a check silently stops working, this page starts passing — and a
+  passing self-test is the failure.
+
+      cd <repo with playwright>
+      node engine/audit.mjs http://localhost:8899/styles/_shared/_audit-selftest.html \
+           --pack hand-drawn --widths 1440
+
+  EXPECTED — 7 FAIL, and these exactly:
+    density   1 viewport with a single text block over 307 chars
+    measure   1 body block past 80ch
+    targets   3 targets under 24px  (2 nav links + the button; the INLINE link
+              in the sentence above them is exempt under 2.5.8 and must not appear)
+    pack      rotation past 3 degrees          — 4 violations
+    pack      one rotation reused everywhere   — 4 violations
+    pack      uniform border-radius            — 4 violations
+    pack      drop shadows                     — 4 violations
+
+  EXPECTED — 4 WARN: h1 word count, 2 headings over 7 words, 1 button label
+  over 3 words, and zero image assets.
+
+  Each pack count is 4, not 8. That is the load-bearing number: the ignored
+  block below contains four more of every card, and if any count reads 8 the
+  strip has stopped working.
+
+  The block at the bottom carries every one of those faults again inside
+  data-audit-ignore. None of it may be counted. That half of the test is what
+  proves the strip is scoped rather than merely quiet.
+  ══════════════════════════════════════════════════════════════════════════
+-->
+<style>
+  :root{ color-scheme: light; --ink:#241f1a; --paper:#fbf7f0; }
+  body{ margin:0; background:var(--paper); color:var(--ink);
+        font:400 17px/1.6 ui-sans-serif, system-ui, sans-serif; }
+  .wrap{ max-width:none; padding:32px 40px; }
+
+  /* 1. MEASURE — one block set past the 80ch WCAG ceiling. Deliberately wide
+        and small so the line count is high enough to be real wrapped copy. */
+  .toowide{ width:1320px; font-size:13px; }
+
+  /* 2. TARGETS — under the 24px WCAG 2.5.8 floor, and NOT inline in a
+        sentence, so the exemption must not rescue them. */
+  .tiny{ display:inline-block; padding:0 6px; height:18px; line-height:18px;
+         font-size:12px; background:#e8ded0; color:#241f1a; }
+
+  /* 3. hand-drawn pack bans, all four at once.
+        - four identical corners (uniform border-radius)
+        - 8deg rotation (past the +/-3 ceiling)
+        - the SAME 8deg on every one of them (reveals the trick)
+        - a drop shadow */
+  .card{ width:220px; height:140px; margin:18px; display:inline-block;
+         background:#fff; border:2px solid var(--ink);
+         border-radius:14px;                 /* identical on all four corners */
+         transform: rotate(8deg);            /* past 3deg, and always the same */
+         box-shadow: 6px 6px 0 rgba(0,0,0,.25); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>A headline written far past the seven word ceiling this pack sets</h1>
+
+  <p class="toowide">This paragraph is set on a line far longer than eighty characters, which is the
+  ceiling WCAG 1.4.8 puts on the measure of a block of text. It is deliberately given a wide
+  container and a small font size so that the rendered line boxes, not the container width, are what
+  the auditor reads. The check bands the client rects by their top edge and takes the widest line, so
+  a paragraph that merely sits inside a wide column while wrapping at a comfortable measure is not
+  reported. This one genuinely runs long, and must be.</p>
+
+  <p>A normal paragraph, inside which <a href="#x">this inline link</a> appears. It is under 24px
+  tall, but WCAG 2.5.8 exempts a target that sits in a sentence, so it must NOT be reported. This
+  sentence is padded out so the exemption has real surrounding text to key on.</p>
+
+  <nav>
+    <a class="tiny" href="#a">Work</a>
+    <a class="tiny" href="#b">About</a>
+  </nav>
+
+  <p><button>Send the whole thing now</button></p>
+
+  <h2>A second heading that also runs past the seven word limit</h2>
+
+  <div class="card"></div><div class="card"></div>
+  <div class="card"></div><div class="card"></div>
+</div>
+
+<!-- ── the control half: every fault above, repeated, and none may count ──── -->
+<div data-audit-ignore class="wrap">
+  <h1>Another heading well past the seven word ceiling that must not be counted</h1>
+  <p class="toowide">This paragraph is identical in kind to the one above and is set on a line far
+  longer than eighty characters, past the ceiling WCAG 1.4.8 puts on the measure of a block of text.
+  It sits inside a data-audit-ignore subtree, so the auditor removes it before measuring and it must
+  contribute nothing at all to the report. If a measure failure is reported twice instead of once,
+  the strip is not working and the page chrome is being graded as though it were the design.</p>
+  <nav><a class="tiny" href="#c">Ghost</a><a class="tiny" href="#d">Ghost</a></nav>
+  <p><button>Another over long button label</button></p>
+  <div class="card"></div><div class="card"></div>
+  <div class="card"></div><div class="card"></div>
+</div>
+
+</body>
+</html>

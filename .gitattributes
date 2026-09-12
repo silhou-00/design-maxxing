@@ -1,0 +1,15 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.gif binary
+*.mp4 binary
+*.woff binary
+*.woff2 binary
+
+# vendor packs are SHA-pinned — commit byte-for-byte, no line-ending normalisation
+taste/**     -text
+kowalski/**  -text
+impeccable/** -text

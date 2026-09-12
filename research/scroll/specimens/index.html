@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scroll Techniques — Working CSS Specimens</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   Every technique below is CSS-only. No GSAP, no Lenis, no JS.
+   Requires animation-timeline support: Chrome/Edge 115+, Safari 26+,
+   Firefox 155+. A no-support fallback is declared at the bottom.
+   ══════════════════════════════════════════════════════════════════ */
+
+*{box-sizing:border-box}
+body{margin:0;background:#0c0c0f;color:#e8e8ea;
+     font:15px/1.6 ui-sans-serif,system-ui,sans-serif}
+section{padding:14vh 6vw;border-bottom:1px solid #23232a;position:relative}
+h2{font:600 13px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;
+   color:#8b8b96;margin:0 0 6px}
+h3{font:600 30px/1.1 ui-sans-serif;margin:0 0 10px;letter-spacing:-.02em}
+p.note{color:#8b8b96;max-width:56ch;margin:0 0 28px}
+code{font:12px ui-monospace,monospace;background:#1a1a20;padding:2px 5px;border-radius:4px;color:#c9c9d4}
+
+/* ── 01 SCROLL PROGRESS ─────────────────────────────────────────────
+   Scroll Progress Timeline on the root scroller. The canonical demo. */
+/* One named timeline on the document scroller, reused by 01, 09 and 11.
+   Declaring it on `html` is the pattern the spec authors' own demos use. */
+html{ scroll-timeline:--page block; }
+
+@keyframes grow-progress{ from{transform:scaleX(0)} to{transform:scaleX(1)} }
+#progress{
+  position:fixed; left:0; top:0; z-index:99;
+  width:100%; height:5px; background:#ff5c39;
+  transform-origin:0 50%;
+  animation:grow-progress auto linear;
+  animation-timeline:--page;
+}
+
+/* ── 02 SCROLL REVEAL ───────────────────────────────────────────────
+   View Progress Timeline. Fires as the subject crosses the scrollport.
+   animation-range confines it to the entry phase. */
+@keyframes reveal{
+  from{opacity:0; transform:translateY(28px)}
+  to  {opacity:1; transform:translateY(0)}
+}
+.reveal > *{
+  animation:reveal auto linear both;
+  animation-timeline:view();
+  animation-range:entry 10% cover 38%;
+}
+.card{background:#16161c;border:1px solid #26262f;border-radius:14px;padding:20px;margin-bottom:14px}
+
+/* ── 03 PARALLAX ────────────────────────────────────────────────────
+   Two layers, same timeline, different translate distances.
+   Transform-only, so it composites off the main thread. */
+.parallax{height:56vh;overflow:hidden;position:relative;border-radius:16px;
+  background:linear-gradient(#1b2a4a,#0f1626)}
+@keyframes drift-slow{ from{transform:translateY(-8%)}  to{transform:translateY(8%)} }
+@keyframes drift-fast{ from{transform:translateY(-26%)} to{transform:translateY(26%)} }
+.parallax .layer{position:absolute;inset:-30% 0;display:grid;place-items:center;
+  animation-timeline:view();animation-timing-function:linear;animation-fill-mode:both}
+.parallax .back {animation-name:drift-slow;font-size:112px;color:#22335c;font-weight:800}
+.parallax .front{animation-name:drift-fast;font-size:40px;color:#eaeaf2;font-weight:700}
+
+/* ── 04 PINNED SCENE ────────────────────────────────────────────────
+   position:sticky pins the stage; a named view-timeline on the TALL
+   parent drives animation inside it. Pinning is CSS, not JS. */
+.pin-wrap{height:260vh;position:relative;view-timeline-name:--pin;view-timeline-axis:block}
+.pin-stage{position:sticky;top:0;height:100vh;display:grid;place-items:center;overflow:hidden}
+@keyframes pin-spin{
+  from{transform:rotate(0deg) scale(.55); border-radius:50%; background:#ff5c39}
+  to  {transform:rotate(200deg) scale(1.25); border-radius:6px; background:#39c2ff}
+}
+.pin-box{width:180px;height:180px;
+  animation:pin-spin auto linear both;
+  animation-timeline:--pin;
+  animation-range:contain 0% contain 100%;
+}
+
+/* ── 05 STACKING CARDS ──────────────────────────────────────────────
+   Each card sticks at the same offset; already-stuck cards scale down.
+   The depth cue is the whole effect. */
+.stack{display:flex;flex-direction:column;gap:0}
+.stack li{position:sticky;top:14vh;list-style:none;
+  animation:card-shrink auto linear both;
+  animation-timeline:view();
+  animation-range:exit-crossing 0% exit-crossing 100%;
+}
+@keyframes card-shrink{ to{ transform:scale(.86); filter:brightness(.55) } }
+.stack .face{height:34vh;border-radius:18px;display:grid;place-items:center;
+  font:700 28px ui-sans-serif;color:#0c0c0f;border:2px solid #0c0c0f}
+.s1{background:#ff5c39}.s2{background:#39c2ff}.s3{background:#ffd23f}.s4{background:#8ee87a}
+
+/* ── 06 HORIZONTAL SCROLL SECTION ───────────────────────────────────
+   A real horizontal scroller with its own named scroll-timeline.
+   The step indicator is driven by the INLINE axis. */
+.h-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:14px;
+  scroll-snap-type:x mandatory;                 /* ← 07 scroll-snap too */
+  scroll-timeline:--rail inline;}
+.h-scroll .panel{flex:0 0 62%;height:30vh;border-radius:16px;scroll-snap-align:center;
+  display:grid;place-items:center;font:700 26px ui-sans-serif;color:#0c0c0f}
+.rail-bar{height:4px;background:#26262f;border-radius:2px;margin-top:10px;overflow:hidden}
+.rail-bar i{display:block;height:100%;background:#ff5c39;transform-origin:0 50%;
+  transform:scaleX(.25);
+  animation:grow-progress auto linear both;
+  animation-timeline:--rail;}
+
+/* ── 08 TEXT REVEAL ─────────────────────────────────────────────────
+   Per-word view timelines. Each word is its own subject. */
+.text-reveal{font:600 34px/1.35 ui-sans-serif;max-width:22ch;letter-spacing:-.02em}
+.text-reveal span{display:inline-block;
+  animation:word-in auto linear both;
+  animation-timeline:view();
+  animation-range:entry 20% cover 45%;}
+@keyframes word-in{ from{opacity:.12; filter:blur(4px)} to{opacity:1; filter:blur(0)} }
+
+/* ── 09 STICKY HEADER MORPH ─────────────────────────────────────────
+   Header shrinks over the first 200px of scroll only. */
+@keyframes shrink-head{
+  to{ padding-block:8px; background:rgba(12,12,15,.92); border-color:#2c2c36 }
+}
+#head{position:sticky;top:5px;z-index:50;margin:0 6vw;padding:20px;border:1px solid transparent;
+  border-radius:12px;font:600 14px ui-monospace,monospace;letter-spacing:.1em;
+  backdrop-filter:blur(8px);
+  animation:shrink-head auto linear both;
+  animation-timeline:--page;
+  animation-range:0 200px;}
+
+/* ── 10 SCROLL-DRIVEN THEME SHIFT ───────────────────────────────────
+   Background hue bound to progress through one section. */
+@keyframes hue-shift{
+  from{background-color:#2a1030} 50%{background-color:#0f2c33} to{background-color:#31240d}
+}
+.theme-shift{animation:hue-shift auto linear both;animation-timeline:view();
+  animation-range:cover 0% cover 100%;border-radius:16px;padding:9vh 5vw}
+
+/* ── 11 SCROLL MARQUEE ──────────────────────────────────────────────
+   Position-bound, not time-bound: it only moves while you scroll,
+   and it reverses when you scroll up. */
+.marquee{overflow:hidden;white-space:nowrap;border-block:1px solid #26262f;padding:14px 0}
+.marquee span{display:inline-block;font:800 40px ui-sans-serif;color:#39c2ff;
+  animation:slide auto linear both;animation-timeline:--page;}
+@keyframes slide{ from{transform:translateX(0)} to{transform:translateX(-42%)} }
+
+/* ── 12 SCROLL SHADOWS (utility) ────────────────────────────────────
+   Fade the top/bottom edge cue in only when there is more to scroll. */
+.shadow-box{max-height:22vh;overflow-y:auto;scroll-timeline:--sb block;
+  border:1px solid #26262f;border-radius:12px;padding:14px}
+.shadow-box p{margin:0 0 10px}
+.sb-wrap{position:relative}
+.sb-wrap::after{content:"";position:absolute;left:1px;right:1px;bottom:1px;height:46px;
+  border-radius:0 0 12px 12px;pointer-events:none;
+  background:linear-gradient(transparent,#0c0c0f);
+  animation:fade-out-shadow auto linear both;
+  animation-timeline:--sb;animation-range:contain 85% contain 100%;}
+@keyframes fade-out-shadow{ from{opacity:1} to{opacity:0} }
+
+/* ── ACCESSIBILITY — non-negotiable ────────────────────────────────
+   WCAG 2.3.3 names parallax as the canonical non-essential motion.
+   Kill everything decorative; keep progress indicators (informational). */
+@media (prefers-reduced-motion:reduce){
+  .reveal > *, .parallax .layer, .pin-box, .stack li,
+  .text-reveal span, .theme-shift, .marquee span, #head{
+    animation:none !important;
+    opacity:1 !important;
+    transform:none !important;
+    filter:none !important;
+  }
+  .h-scroll{scroll-snap-type:none}
+  .stack li{position:static}
+}
+
+/* ── FALLBACK — browsers without scroll-driven animations ──────────
+   Everything must be visible and legible with zero animation. */
+@supports not (animation-timeline: scroll()){
+  .reveal > *, .text-reveal span{opacity:1;transform:none;filter:none}
+  #progress{display:none}
+  .unsupported{display:block !important}
+}
+.unsupported{display:none;background:#3a1f0c;border:1px solid #7a4a1c;color:#ffc98a;
+  padding:12px 16px;border-radius:10px;margin:0 6vw 0}
+  .golive{display:inline-block;font:600 10px/1 ui-monospace,monospace;letter-spacing:.08em;
+    text-transform:uppercase;background:#7ee787;color:#04120a;padding:5px 8px;border-radius:3px;
+    text-decoration:none;margin-left:8px;vertical-align:middle}
+  .golive:hover{background:#fff}
+  .sectionbar{position:sticky;top:0;z-index:200;background:#000;color:#fff;
+    font:600 11px/1.5 ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;
+    padding:9px 14px;border-bottom:1px solid #333;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .sectionbar b{color:#7ee787}
+  .sectionbar span{color:#8b8b95;text-transform:none;letter-spacing:0;font-weight:500}
+  .allindex{background:#0b0b0d;border-bottom:1px solid #333;padding:12px 14px;
+    display:flex;gap:7px;flex-wrap:wrap;align-items:center;
+    font:600 10px/1 ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase}
+  .allindex b{color:#fff;margin-right:6px}
+  .allindex a{color:#04120a;background:#7ee787;padding:6px 8px;border-radius:3px;text-decoration:none}
+  .allindex a:hover{background:#fff}
+  .allindex a.only{background:#e3b341}
+  .allindex .note{color:#8b8b95;text-transform:none;letter-spacing:0;font-weight:500;
+    flex-basis:100%;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="allindex"><b>All sixteen, as live sections</b><a href="../sections/scroll-reveal.html">scroll-reveal ↗</a><a href="../sections/scroll-progress.html">scroll-progress ↗</a><a href="../sections/parallax.html">parallax ↗</a><a href="../sections/pinned-scene.html">pinned-scene ↗</a><a href="../sections/stacking-cards.html">stacking-cards ↗</a><a href="../sections/scroll-snap.html">scroll-snap ↗</a><a href="../sections/horizontal-scroll.html">horizontal-scroll ↗</a><a href="../sections/scrollytelling.html" class="only">scrollytelling ↗ only here</a><a href="../sections/text-reveal.html">text-reveal ↗</a><a href="../sections/svg-path-draw.html" class="only">svg-path-draw ↗ only here</a><a href="../sections/scroll-theme-shift.html">scroll-theme-shift ↗</a><a href="../sections/scroll-marquee.html">scroll-marquee ↗</a><a href="../sections/smooth-scroll.html" class="only">smooth-scroll ↗ only here</a><a href="../sections/video-scrub.html" class="only">video-scrub ↗ only here</a><a href="../sections/scroll-world.html" class="only">scroll-world ↗ only here</a><a href="../sections/view-transition.html" class="only">view-transition ↗ only here</a><span class="note">Six of these have no tile on this sheet — they need a full page to demonstrate, or they refuse to demonstrate at all.</span></div>
+<div class="sectionbar"><b>16 scroll techniques</b><span>this sheet is the flat overview — click any ↗ to open that technique as a real, scrollable section with its own audit against engine.md §6</span></div>
+
+
+<div id="progress"></div>
+<div id="head">SCROLL SPECIMENS &middot; 10 OF 16 SHOWN &middot; ALL 16 LINKED ABOVE</div>
+<div class="unsupported">This browser has no <code>animation-timeline</code> support. All content is
+still readable — that is the point of the fallback.</div>
+
+<section>
+  <h2>01 · scroll progress <a class="golive" href="../sections/scroll-progress.html">scroll-progress ↗</a></h2>
+  <h3>Reading indicator</h3>
+  <p class="note">The orange bar at the very top. A Scroll Progress Timeline on the root scroller,
+  scaling a fixed bar on the X axis. <code>animation-timeline: scroll()</code>. Scale, not width —
+  width would trigger layout on every frame.</p>
+</section>
+
+<section class="reveal">
+  <h2>02 · scroll reveal <a class="golive" href="../sections/scroll-reveal.html">scroll-reveal ↗</a></h2>
+  <h3>Entrance on enter</h3>
+  <p class="note">A View Progress Timeline per card, confined to
+  <code>animation-range: entry 10% cover 38%</code> so each finishes well before it reaches
+  the middle of the screen. The single most-used scroll effect on the web.</p>
+  <div class="card">Card one — fades and lifts as it enters.</div>
+  <div class="card">Card two — same keyframes, its own timeline.</div>
+  <div class="card">Card three — no stagger logic needed; position in the scrollport is the stagger.</div>
+</section>
+
+<section>
+  <h2>03 · parallax <a class="golive" href="../sections/parallax.html">parallax ↗</a></h2>
+  <h3>Layers at different rates</h3>
+  <p class="note">Two layers on one view timeline, translating at 16% and 52% of the range.
+  Transform-only, so it composites off the main thread. <strong>WCAG 2.3.3 names parallax
+  explicitly</strong> as non-essential motion that can trigger vestibular reactions — it is killed
+  under <code>prefers-reduced-motion</code> below.</p>
+  <div class="parallax">
+    <div class="layer back">DEPTH</div>
+    <div class="layer front">foreground moves further</div>
+  </div>
+</section>
+
+<section style="padding-bottom:0">
+  <h2>04 · pinned scene <a class="golive" href="../sections/pinned-scene.html">pinned-scene ↗</a></h2>
+  <h3>Sticky stage, scrubbed contents</h3>
+  <p class="note">A 260vh parent carries the timeline; a <code>position: sticky</code> child is the
+  stage. The box rotates, scales and morphs its radius across <code>contain</code> — the range where
+  the tall parent fully covers the scrollport. No JS pinning, no pin-spacer, no layout shift.</p>
+</section>
+<div class="pin-wrap">
+  <div class="pin-stage"><div class="pin-box"></div></div>
+</div>
+
+<section>
+  <h2>05 · stacking cards <a class="golive" href="../sections/stacking-cards.html">stacking-cards ↗</a></h2>
+  <h3>Sticky stack with depth</h3>
+  <p class="note">Each card is <code>position: sticky; top: 14vh</code>. As a card exits, the
+  <code>exit-crossing</code> range scales it down and darkens it, so the stack reads as depth
+  rather than as overlap.</p>
+  <ul class="stack" style="padding:0;margin:0">
+    <li><div class="face s1">ONE</div></li>
+    <li><div class="face s2">TWO</div></li>
+    <li><div class="face s3">THREE</div></li>
+    <li><div class="face s4">FOUR</div></li>
+  </ul>
+</section>
+
+<section>
+  <h2>06 · horizontal scroll &nbsp;+&nbsp; 07 · scroll snap <a class="golive" href="../sections/horizontal-scroll.html">horizontal-scroll ↗</a> <a class="golive" href="../sections/scroll-snap.html">scroll-snap ↗</a></h2>
+  <h3>A real horizontal scroller</h3>
+  <p class="note">Native <code>overflow-x: auto</code> with <code>scroll-snap-type: x mandatory</code>.
+  The rail below is driven by a <em>named</em> timeline on the inline axis
+  (<code>scroll-timeline: --rail inline</code>). Note this stays keyboard- and
+  touch-native — unlike the JS pattern that converts vertical scroll into horizontal movement.</p>
+  <div class="h-scroll">
+    <div class="panel s1">01</div><div class="panel s2">02</div>
+    <div class="panel s3">03</div><div class="panel s4">04</div>
+  </div>
+  <div class="rail-bar"><i></i></div>
+</section>
+
+<section>
+  <h2>08 · text reveal <a class="golive" href="../sections/text-reveal.html">text-reveal ↗</a></h2>
+  <div class="text-reveal">
+    <span>Each</span> <span>word</span> <span>is</span> <span>its</span> <span>own</span>
+    <span>subject</span> <span>on</span> <span>its</span> <span>own</span>
+    <span>view</span> <span>timeline.</span>
+  </div>
+  <p class="note" style="margin-top:24px">Blur is the expensive part here — it is a paint-level
+  filter, not a composited transform. Fine on eleven words, not fine on a paragraph.</p>
+</section>
+
+<section>
+  <h2>09 · sticky header morph</h2>
+  <h3>Range-limited scrub</h3>
+  <p class="note">The header above shrinks and gains a background over the first 200px only:
+  <code>animation-range: 0 200px</code>. A fixed-length range, not a percentage — the cleanest way
+  to bind an effect to an absolute scroll distance.</p>
+</section>
+
+<section>
+  <h2>10 · scroll-driven theme shift <a class="golive" href="../sections/scroll-theme-shift.html">scroll-theme-shift ↗</a></h2>
+  <div class="theme-shift">
+    <h3 style="margin:0">Background bound to section progress</h3>
+    <p class="note" style="margin:8px 0 0">Three keyframe stops across <code>cover</code>. Cheap,
+    since background-color animates on the compositor in modern engines — but it is the one effect
+    here that can silently destroy text contrast. Check every stop.</p>
+  </div>
+</section>
+
+<section>
+  <h2>11 · scroll marquee <a class="golive" href="../sections/scroll-marquee.html">scroll-marquee ↗</a></h2>
+  <div class="marquee">
+    <span>POSITION-BOUND · NOT TIME-BOUND · REVERSES ON SCROLL UP · POSITION-BOUND · NOT TIME-BOUND ·</span>
+  </div>
+  <p class="note" style="margin-top:22px">The difference from a CSS-animation marquee: this one is
+  still when the page is still, and runs backwards when you scroll up. Motion that reports scroll
+  rather than demanding attention.</p>
+</section>
+
+<section>
+  <h2>12 · scroll shadows</h2>
+  <h3>Edge cue that knows when to leave</h3>
+  <p class="note">The bottom fade disappears over the last 15% of the inner scroller, so it never
+  lies about there being more content. The most useful scroll-driven effect that nobody calls an
+  animation.</p>
+  <div class="sb-wrap">
+    <div class="shadow-box">
+      <p>Scroll this box.</p><p>The gradient at the bottom edge…</p><p>…fades out…</p>
+      <p>…as you approach the end…</p><p>…and is gone here.</p><p>End of content.</p>
+    </div>
+  </div>
+</section>
+
+<section style="min-height:40vh">
+  <h2>end</h2>
+  <p class="note">Twelve techniques, zero dependencies, ~340 lines of CSS. Everything degrades to
+  a plain readable page without <code>animation-timeline</code>, and everything decorative is
+  removed under <code>prefers-reduced-motion: reduce</code>.</p>
+</section>
+
+</body>
+</html>

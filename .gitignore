@@ -1,0 +1,19 @@
+# ── client artifacts — this repo is public; product briefs and outputs stay local ──
+output/*
+!output/.gitkeep
+briefs/*
+!briefs/.gitkeep
+
+# ── third-party reference images downloaded from source articles ──
+# Every source URL is recorded in research/styles/<pack>/reference.md.
+# The copies are not ours to redistribute; remove this line for a private fork.
+research/styles/*/refs/
+
+# ── environment ──
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+scratch/
+.impeccable/build/

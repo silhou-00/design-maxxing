@@ -1,0 +1,87 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHARED SHEET CHROME — the furniture every module sheet sits in.
+
+   Deliberately neutral and monospace-labelled: it must never be confused with
+   the pack being shown. A specimen lives inside .stage; everything outside a
+   .stage is chrome and carries no pack opinion.
+
+   Pack CSS goes in the page's own <style>, after this file.
+   ═════════════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 ui-sans-serif,system-ui,sans-serif;background:#f4f4f5;color:#18181b}
+code,.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 120px}
+header.top{border-bottom:1px solid #d4d4d8;margin-bottom:28px;padding:24px 0 18px}
+.crumb{font:600 11px/1.6 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#71717a}
+.crumb a{color:#71717a}
+h1{font:700 32px/1.1 ui-sans-serif,system-ui;margin:10px 0 6px;letter-spacing:-.02em}
+.lede{color:#52525b;max-width:70ch;margin:0}
+.meta{margin-top:14px;font:500 12px/1.6 ui-monospace,monospace;color:#71717a}
+.meta b{color:#18181b}
+
+nav.toc{position:sticky;top:0;z-index:50;background:#f4f4f5f2;
+  border-bottom:1px solid #d4d4d8;margin:0 -20px 34px;padding:9px 20px;display:flex;gap:6px;
+  flex-wrap:wrap;align-items:center}
+nav.toc a{font:600 11px/1 ui-monospace,monospace;letter-spacing:.05em;text-transform:uppercase;
+  color:#3f3f46;text-decoration:none;padding:5px 8px;border:1px solid transparent;border-radius:3px}
+nav.toc a:hover{background:#e4e4e7;border-color:#d4d4d8}
+nav.toc a:focus-visible{outline:2px solid #18181b;outline-offset:1px}
+
+section.block{margin:0 0 56px;scroll-margin-top:56px}
+h2{font:700 13px/1.4 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;
+  margin:0 0 6px;padding-bottom:9px;border-bottom:2px solid #18181b;display:flex;
+  justify-content:space-between;align-items:baseline;gap:12px}
+h2 .n{color:#a1a1aa;font-weight:500;text-align:right}
+.note{color:#52525b;margin:12px 0 20px;max-width:76ch}
+.note b{color:#18181b}
+h3.sub{font:600 12px/1 ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;
+  color:#71717a;margin:26px 0 12px}
+
+/* a stage is where a specimen sits — neutral frame, labelled corner */
+.stage{background:var(--page,#fff);border:1px solid #d4d4d8;border-radius:6px;padding:26px;
+  position:relative;overflow:hidden}
+.stage::after{content:attr(data-label);position:absolute;top:0;right:0;
+  font:600 10px/1 ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;
+  background:#18181b;color:#fff;padding:5px 7px;border-bottom-left-radius:4px;z-index:5}
+.good::after{background:#15803d}
+.bad::after{background:#b91c1c}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+
+.cap{font:500 12px/1.5 ui-monospace,monospace;color:#52525b;margin:9px 0 0;max-width:78ch}
+
+table.spec{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+table.spec th,table.spec td{text-align:left;padding:7px 10px;border-bottom:1px solid #e4e4e7;
+  vertical-align:top}
+table.spec th{font:600 11px/1 ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;
+  color:#71717a;border-bottom:2px solid #18181b}
+table.spec td code{font-size:12px;background:#e4e4e7;padding:1px 5px;border-radius:3px}
+table.spec td.v{font-family:ui-monospace,monospace;font-size:12.5px}
+.anote{color:#a1a1aa;font-size:11.5px}
+
+pre{background:#18181b;color:#e4e4e7;padding:14px 16px;border-radius:6px;overflow-x:auto;
+  font-size:12.5px;line-height:1.6;margin:12px 0}
+pre .c{color:#a1a1aa}
+
+.pill{display:inline-block;font:600 10px/1 ui-monospace,monospace;letter-spacing:.08em;
+  text-transform:uppercase;padding:4px 7px;border-radius:3px;background:#e4e4e7;color:#3f3f46}
+.pill.pass{background:#dcfce7;color:#15803d}
+.pill.fail{background:#fee2e2;color:#b91c1c}
+.pill.by{background:#e4e4e7;color:#71717a}
+.pill.sim{background:#fef3c7;color:#92400e}
+.pill.live{background:#dbeafe;color:#1e40af}
+.warnmark{color:#92400e}
+.isok{color:#15803d}
+.isbad{color:#b91c1c}
+
+.toggle{display:flex;gap:8px;align-items:center;margin:0 0 18px;flex-wrap:wrap}
+.toggle button{font:600 11px/1 ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;
+  padding:7px 12px;border:1px solid #a1a1aa;background:#fff;border-radius:4px;cursor:pointer;color:#3f3f46}
+.toggle button[aria-pressed=true]{background:#18181b;color:#fff;border-color:#18181b}
+
+/* narrow-width column, rendered at a real phone width */
+.narrow{width:390px;max-width:100%;border:1px solid #d4d4d8;border-radius:6px;overflow:hidden}
+.narrow .inner{background:var(--page,#fff);padding:16px}
